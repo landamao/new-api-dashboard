@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New API Dashboard</title>
+<link rel="icon" type="image/jpeg" href="/icon.jpg">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --pink-50: #fdf2f8;
+    --pink-100: #fce7f3;
+    --pink-200: #fbcfe8;
+    --pink-300: #f9a8d4;
+    --pink-400: #f472b6;
+    --pink-500: #ec4899;
+    --pink-600: #db2777;
+    --pink-700: #be185d;
+    --rose-50: #fff1f2;
+    --rose-100: #ffe4e6;
+    --rose-200: #fecdd3;
+    --bg: #fff5f7;
+    --card: #ffffff;
+    --text: #4a1942;
+    --text-light: #9f7aea;
+    --border: #fce7f3;
+    --shadow: 0 4px 20px rgba(236, 72, 153, 0.1);
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(251, 207, 232, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 50% 80%, rgba(249, 168, 212, 0.2) 0%, transparent 50%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 40px;
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding: 16px 20px;
+    }
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 32px 0 24px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--pink-500), var(--pink-700));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header p {
+    color: var(--text-light);
+    font-size: 14px;
+    margin-top: 4px;
+  }
+  .user-bar {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+  .user-info {
+    font-size: 13px;
+    color: var(--pink-600);
+    background: var(--pink-50);
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--pink-200);
+  }
+  .btn-logout {
+    font-size: 12px;
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .btn-logout:hover {
+    color: var(--pink-600);
+    border-color: var(--pink-300);
+    background: var(--pink-50);
+  }
+
+  /* Filter Bar */
+  .filter-bar {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    border: 1px solid var(--border);
+  }
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .filter-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--pink-600);
+  }
+  select, input[type="datetime-local"] {
+    padding: 8px 12px;
+    border: 2px solid var(--pink-200);
+    border-radius: 10px;
+    font-size: 13px;
+    background: var(--pink-50);
+    color: var(--text);
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  select:focus, input:focus {
+    border-color: var(--pink-400);
+    box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.15);
+  }
+  select { min-width: 140px; }
+  input[type="datetime-local"] { min-width: 180px; }
+
+  .btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+    color: white;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.4);
+  }
+  .btn-secondary {
+    background: var(--pink-100);
+    color: var(--pink-700);
+  }
+  .btn-secondary:hover {
+    background: var(--pink-200);
+  }
+
+  /* Stats Cards */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+  }
+  .stat-card .icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .stat-card .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pink-600);
+    line-height: 1.2;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+
+  /* Charts Section */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  .chart-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .chart-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--pink-700);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chart-card canvas {
+    max-height: 300px;
+  }
+  .chart-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .chart-toggle .btn {
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+  .chart-toggle .btn.active {
+    background: var(--pink-500);
+    color: white;
+  }
+
+  /* Time Series Chart - Full Width */
+  .chart-full {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+  .chart-full h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--pink-700);
+    margin-bottom: 16px;
+  }
+  .chart-full canvas {
+    max-height: 350px;
+  }
+
+  /* Log Table */
+  .log-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .log-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--pink-700);
+    margin-bottom: 16px;
+  }
+  .log-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+  }
+  .log-table th {
+    background: var(--pink-50);
+    color: var(--pink-700);
+    font-weight: 500;
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 2px solid var(--pink-200);
+    white-space: nowrap;
+  }
+  .log-table th:first-child { border-radius: 10px 0 0 0; }
+  .log-table th:last-child { border-radius: 0 10px 0 0; }
+  .log-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--pink-100);
+    color: var(--text);
+  }
+  .log-table tr:hover td {
+    background: var(--pink-50);
+  }
+  .log-table .model-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--pink-100), var(--rose-100));
+    color: var(--pink-700);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .log-table .token-count {
+    font-variant-numeric: tabular-nums;
+    color: var(--pink-600);
+    font-weight: 500;
+  }
+  .log-table .cost {
+    font-weight: 600;
+    color: var(--pink-700);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .pagination .btn {
+    min-width: 36px;
+    padding: 6px 12px;
+  }
+  .pagination .btn.active {
+    background: var(--pink-500);
+    color: white;
+  }
+  .pagination .info {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--pink-400);
+  }
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--pink-200);
+    border-top-color: var(--pink-500);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive table */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>New API Dashboard</h1>
+    <p>API 用量统计看板</p>
+    <div class="user-bar" id="userBar">
+      <span class="user-info" id="userInfo">-</span>
+      <a href="/logout" class="btn-logout">登出</a>
+    </div>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>模型</label>
+      <select id="filterModel">
+        <option value="">全部模型</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>用户</label>
+      <select id="filterUser">
+        <option value="">全部用户</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>开始时间</label>
+      <input type="datetime-local" id="filterStart">
+    </div>
+    <div class="filter-group">
+      <label>结束时间</label>
+      <input type="datetime-local" id="filterEnd">
+    </div>
+    <div class="filter-group">
+      <label>时间粒度</label>
+      <select id="filterGroupBy">
+        <option value="day">按天</option>
+        <option value="hour">按小时</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="applyFilters()">查询</button>
+    <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon">📞</div>
+      <div class="value" id="statCalls">-</div>
+      <div class="label">总调用次数</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">📝</div>
+      <div class="value" id="statPrompt">-</div>
+      <div class="label">输入 Tokens</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">💬</div>
+      <div class="value" id="statCompletion">-</div>
+      <div class="label">输出 Tokens</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">🎯</div>
+      <div class="value" id="statTotalTokens">-</div>
+      <div class="label">总 Tokens</div>
+    </div>
+    <div class="stat-card">
+      <div class="icon">💰</div>
+      <div class="value" id="statUSD">-</div>
+      <div class="label">总消耗 ($)</div>
+    </div>
+  </div>
+
+  <!-- Time Series Chart -->
+  <div class="chart-full">
+    <h3>📈 消耗趋势</h3>
+    <div class="chart-toggle">
+      <button class="btn btn-secondary active" onclick="setTimeMetric('token')" id="timeMetricToken">Tokens</button>
+      <button class="btn btn-secondary" onclick="setTimeMetric('usd')" id="timeMetricUSD">USD ($)</button>
+    </div>
+    <canvas id="timeChart"></canvas>
+  </div>
+
+  <!-- Model & User Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>🤖 模型消耗排行</h3>
+      <div class="chart-toggle">
+        <button class="btn btn-secondary active" onclick="setModelMetric('token')" id="modelMetricToken">Tokens</button>
+        <button class="btn btn-secondary" onclick="setModelMetric('usd')" id="modelMetricUSD">USD ($)</button>
+      </div>
+      <canvas id="modelChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>👤 用户消耗排行</h3>
+      <div class="chart-toggle">
+        <button class="btn btn-secondary active" onclick="setUserMetric('token')" id="userMetricToken">Tokens</button>
+        <button class="btn btn-secondary" onclick="setUserMetric('usd')" id="userMetricUSD">USD ($)</button>
+      </div>
+      <canvas id="userChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Log Table -->
+  <div class="log-section">
+    <h3>📋 最近调用日志</h3>
+    <div class="table-wrap">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>用户</th>
+            <th>模型</th>
+            <th>输入</th>
+            <th>输出</th>
+            <th>总 Token</th>
+            <th>费用 ($)</th>
+            <th>耗时</th>
+            <th>渠道</th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+          <tr><td colspan="9" class="loading">加载中</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<script>
+// Chart.js 全局配置
+Chart.defaults.font.family = "'Noto Sans SC', sans-serif";
+Chart.defaults.color = '#9f7aea';
+
+const PINK_COLORS = [
+  '#ec4899', '#f472b6', '#f9a8d4', '#fbcfe8', '#fce7f3',
+  '#db2777', '#be185d', '#9d174d', '#831843', '#701a75'
+];
+const PINK_COLORS_LIGHT = PINK_COLORS.map(c => c + '80');
+
+let statsData = null;
+let timeMetric = 'token';
+let modelMetric = 'token';
+let userMetric = 'token';
+let timeChart, modelChart, userChart;
+let currentPage = 1;
+
+// 工具函数
+function formatNumber(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function formatTime(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleString('zh-CN', { 
+    month: '2-digit', day: '2-digit', 
+    hour: '2-digit', minute: '2-digit' 
+  });
+}
+
+function formatDate(ts) {
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });
+}
+
+// 获取筛选参数
+function getFilterParams() {
+  const params = {};
+  const model = document.getElementById('filterModel').value;
+  const user = document.getElementById('filterUser').value;
+  const start = document.getElementById('filterStart').value;
+  const end = document.getElementById('filterEnd').value;
+  const groupBy = document.getElementById('filterGroupBy').value;
+  
+  if (model) params.model = model;
+  if (user) params.username = user;
+  if (start) params.start_time = Math.floor(new Date(start).getTime() / 1000);
+  if (end) params.end_time = Math.floor(new Date(end).getTime() / 1000);
+  params.group_by = groupBy;
+  return params;
+}
+
+async function loadFilters() {
+  const resp = await fetch('/api/filters');
+  const data = await resp.json();
+  
+  const modelSelect = document.getElementById('filterModel');
+  data.models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    modelSelect.appendChild(opt);
+  });
+  
+  const userSelect = document.getElementById('filterUser');
+  const userGroup = userSelect.closest('.filter-group');
+  
+  if (data.is_admin) {
+    // 管理员可以看到所有用户
+    data.users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u;
+      opt.textContent = u;
+      userSelect.appendChild(opt);
+    });
+    userGroup.style.display = '';
+  } else {
+    // 普通用户隐藏用户筛选框
+    userGroup.style.display = 'none';
+  }
+}
+
+async function loadStats() {
+  const params = getFilterParams();
+  const qs = new URLSearchParams(params).toString();
+  const resp = await fetch('/api/stats?' + qs);
+  statsData = await resp.json();
+  
+  // 更新统计卡片
+  document.getElementById('statCalls').textContent = formatNumber(statsData.totals.call_count);
+  document.getElementById('statPrompt').textContent = formatNumber(statsData.totals.prompt_tokens);
+  document.getElementById('statCompletion').textContent = formatNumber(statsData.totals.completion_tokens);
+  document.getElementById('statTotalTokens').textContent = formatNumber(statsData.totals.total_tokens);
+  document.getElementById('statUSD').textContent = '$' + statsData.totals.total_usd.toFixed(4);
+  
+  renderTimeChart();
+  renderModelChart();
+  renderUserChart();
+}
+
+async function loadLogs(page = 1) {
+  currentPage = page;
+  const params = getFilterParams();
+  delete params.group_by;
+  params.page = page;
+  params.per_page = 30;
+  const qs = new URLSearchParams(params).toString();
+  const resp = await fetch('/api/logs?' + qs);
+  const data = await resp.json();
+  
+  const tbody = document.getElementById('logBody');
+  if (!data.logs || data.logs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:40px;">暂无数据</td></tr>';
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+  
+  tbody.innerHTML = data.logs.map(log => `
+    <tr>
+      <td>${formatTime(log.created_at)}</td>
+      <td>${log.username || '-'}${log.ip ? `<br><span style="font-size:11px;color:#999;">${log.ip}</span>` : ''}</td>
+      <td><span class="model-tag" title="${log.model_name}">${log.model_name}</span></td>
+      <td class="token-count">${formatNumber(log.prompt_tokens)}${log.cache_tokens > 0 ? `<br><span style="font-size:11px;color:#999;">缓存读 ${formatNumber(log.cache_tokens)}</span>` : ''}</td>
+      <td class="token-count">${formatNumber(log.completion_tokens)}</td>
+      <td class="token-count">${formatNumber(log.prompt_tokens + log.completion_tokens)}</td>
+      <td class="cost">$${(log.quota / 500000).toFixed(6)}</td>
+      <td>${log.use_time}s</td>
+      <td>${log.channel_name || log.channel_id || '-'}</td>
+    </tr>
+  `).join('');
+  
+  // 分页
+  const totalPages = Math.ceil(data.total / data.per_page);
+  renderPagination(page, totalPages, data.total);
+}
+
+function renderPagination(current, total, totalItems) {
+  const div = document.getElementById('pagination');
+  if (total <= 1) { div.innerHTML = ''; return; }
+  
+  let html = `<span class="info">共 ${totalItems} 条</span>`;
+  html += `<button class="btn btn-secondary ${current === 1 ? '' : ''}" onclick="loadLogs(${current - 1})" ${current === 1 ? 'disabled' : ''}>‹</button>`;
+  
+  const start = Math.max(1, current - 2);
+  const end = Math.min(total, current + 2);
+  for (let i = start; i <= end; i++) {
+    html += `<button class="btn ${i === current ? 'btn-primary' : 'btn-secondary'}" onclick="loadLogs(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="btn btn-secondary" onclick="loadLogs(${current + 1})" ${current === total ? 'disabled' : ''}>›</button>`;
+  div.innerHTML = html;
+}
+
+// Charts
+function renderTimeChart() {
+  if (!statsData) return;
+  const data = statsData.time_series;
+  const labels = data.map(d => {
+    const groupBy = document.getElementById('filterGroupBy').value;
+    if (groupBy === 'hour') {
+      const date = new Date(d.time * 1000);
+      return date.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit' }) + ':00';
+    }
+    return formatDate(d.time);
+  });
+  
+  const values = timeMetric === 'token' 
+    ? data.map(d => d.total_tokens) 
+    : data.map(d => d.usd);
+  
+  const label = timeMetric === 'token' ? 'Tokens' : 'USD ($)';
+  
+  if (timeChart) timeChart.destroy();
+  timeChart = new Chart(document.getElementById('timeChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label,
+        data: values,
+        backgroundColor: 'rgba(236, 72, 153, 0.6)',
+        borderColor: '#ec4899',
+        borderWidth: 1,
+        borderRadius: 6,
+        hoverBackgroundColor: '#ec4899',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          titleColor: '#be185d',
+          bodyColor: '#4a1942',
+          borderColor: '#f9a8d4',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            label: (ctx) => timeMetric === 'token' 
+              ? `Tokens: ${formatNumber(ctx.parsed.y)}` 
+              : `$${ctx.parsed.y.toFixed(4)}`
+          }
+        }
+      },
+      scales: {
+        x: { 
+          grid: { color: 'rgba(249,168,212,0.2)' },
+          ticks: { maxRotation: 45 }
+        },
+        y: { 
+          grid: { color: 'rgba(249,168,212,0.2)' },
+          ticks: { 
+            callback: v => timeMetric === 'token' ? formatNumber(v) : '$' + v.toFixed(2)
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderModelChart() {
+  if (!statsData) return;
+  const data = [...statsData.by_model]
+    .sort((a, b) => modelMetric === 'token'
+      ? b.total_tokens - a.total_tokens
+      : b.usd - a.usd)
+    .slice(0, 10);
+  const values = modelMetric === 'token' 
+    ? data.map(d => d.total_tokens) 
+    : data.map(d => d.usd);
+  
+  if (modelChart) modelChart.destroy();
+  modelChart = new Chart(document.getElementById('modelChart'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.model_name.length > 20 ? d.model_name.slice(0, 20) + '...' : d.model_name),
+      datasets: [{
+        data: values,
+        backgroundColor: PINK_COLORS.slice(0, data.length),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          titleColor: '#be185d',
+          bodyColor: '#4a1942',
+          borderColor: '#f9a8d4',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            title: (ctx) => data[ctx[0].dataIndex].model_name,
+            label: (ctx) => modelMetric === 'token' 
+              ? `Tokens: ${formatNumber(ctx.parsed.x)}` 
+              : `$${ctx.parsed.x.toFixed(4)}`,
+            afterLabel: (ctx) => {
+              const d = data[ctx.dataIndex];
+              return `调用次数: ${d.call_count}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { 
+          grid: { color: 'rgba(249,168,212,0.2)' },
+          ticks: { 
+            callback: v => modelMetric === 'token' ? formatNumber(v) : '$' + v.toFixed(2)
+          }
+        },
+        y: { 
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function renderUserChart() {
+  if (!statsData) return;
+  const data = statsData.by_user.slice(0, 10);
+  const values = userMetric === 'token' 
+    ? data.map(d => d.total_tokens) 
+    : data.map(d => d.usd);
+  
+  if (userChart) userChart.destroy();
+  userChart = new Chart(document.getElementById('userChart'), {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.username),
+      datasets: [{
+        data: values,
+        backgroundColor: PINK_COLORS.slice(0, data.length).reverse(),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          titleColor: '#be185d',
+          bodyColor: '#4a1942',
+          borderColor: '#f9a8d4',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 10,
+          callbacks: {
+            label: (ctx) => userMetric === 'token' 
+              ? `Tokens: ${formatNumber(ctx.parsed.x)}` 
+              : `$${ctx.parsed.x.toFixed(4)}`,
+            afterLabel: (ctx) => {
+              const d = statsData.by_user[ctx.dataIndex];
+              return `调用次数: ${d.call_count}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { 
+          grid: { color: 'rgba(249,168,212,0.2)' },
+          ticks: { 
+            callback: v => userMetric === 'token' ? formatNumber(v) : '$' + v.toFixed(2)
+          }
+        },
+        y: { 
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// Toggle functions
+function setTimeMetric(m) {
+  timeMetric = m;
+  document.getElementById('timeMetricToken').classList.toggle('active', m === 'token');
+  document.getElementById('timeMetricUSD').classList.toggle('active', m === 'usd');
+  renderTimeChart();
+}
+function setModelMetric(m) {
+  modelMetric = m;
+  document.getElementById('modelMetricToken').classList.toggle('active', m === 'token');
+  document.getElementById('modelMetricUSD').classList.toggle('active', m === 'usd');
+  renderModelChart();
+}
+function setUserMetric(m) {
+  userMetric = m;
+  document.getElementById('userMetricToken').classList.toggle('active', m === 'token');
+  document.getElementById('userMetricUSD').classList.toggle('active', m === 'usd');
+  renderUserChart();
+}
+
+function applyFilters() {
+  loadStats();
+  loadLogs(1);
+}
+
+function getTodayStartValue() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T00:00`;
+}
+
+function setDefaultStartTime() {
+  document.getElementById('filterStart').value = getTodayStartValue();
+}
+
+function getNowValue() {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function setDefaultEndTime() {
+  document.getElementById('filterEnd').value = getNowValue();
+}
+
+function resetFilters() {
+  document.getElementById('filterModel').value = '';
+  document.getElementById('filterUser').value = '';
+  setDefaultStartTime();
+  setDefaultEndTime();
+  document.getElementById('filterGroupBy').value = 'day';
+  applyFilters();
+}
+
+// Init
+(async function() {
+  setDefaultStartTime();
+  setDefaultEndTime();
+  // 获取当前用户信息
+  try {
+    const meResp = await fetch('/api/me');
+    if (meResp.ok) {
+      const me = await meResp.json();
+      document.getElementById('userInfo').textContent = `👤 ${me.username}`;
+    }
+  } catch (e) {}
+  
+  await loadFilters();
+  await Promise.all([loadStats(), loadLogs()]);
+})();
+</script>
+</div><!-- .container -->
+
+</body>
+</html>
