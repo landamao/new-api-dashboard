@@ -1,6 +1,6 @@
 # New API Dashboard
 
-一个简洁美观的 [New API](https://github.com/Calcium-Ion/new-api) 数据统计看板，支持用户认证、使用日志、模型统计等功能。
+一个清晰美观易读的独立 [New API](https://github.com/Calcium-Ion/new-api) 数据看板，支持用户认证、使用日志、模型统计等功能。
 
 <p align="center">
   <img src="icon.jpg" width="120" alt="logo">
@@ -14,7 +14,7 @@
 - 👤 按用户统计
 - 📋 详细使用日志（含 IP 地址显示）
 - 🔐 用户认证（复用 New API 用户系统）
-- 🎨 粉色主题 UI
+- 🎨 美丽舒适的 UI 布局
 
 ## 🚀 快速开始
 
